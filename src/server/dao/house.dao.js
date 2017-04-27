@@ -66,10 +66,10 @@ function searchHouse(url, callback) {
     var query = {};
 
     if (url.city) {
-        query['location.city'] = unescape(url.city.replace(/-/g, " "));
+        query['location.city'] = unescape(url.city);
     }
     if (url.district) {
-        query['location.district'] = unescape(url.district.replace(/-/g, " "));
+        query['location.district'] = unescape(url.district);
     }
     if (url.noFloor) {
         query['floorNo'] = { $gte: url.noFloor };
@@ -124,6 +124,7 @@ function searchHouse(url, callback) {
         House.count(query, function (err, count) {
             if (err) callback(err);
             else {
+                console.log("count " + count);
                 if (pageSize < 0) {
                     pageSize = count;
                     pageIndex = 1;
@@ -180,26 +181,26 @@ function updateHouseInfo(user, house, callback) {
             }).then(function () {
                 if (!updateInfo.hasOwnProperty('location')) updateInfo.location = oldInfo.location;
                 if (!updateInfo.hasOwnProperty('img_Link')) updateInfo.img_Link = oldInfo.img_Link;
-                if (!updateInfo.hasOwnProperty('floor_No')) updateInfo.floor_No = oldInfo.floor_No;
-                if (!updateInfo.hasOwnProperty('basement_No')) updateInfo.basement_No = oldInfo.basement_No;
+                if (!updateInfo.hasOwnProperty('floorNo')) updateInfo.floorNo = oldInfo.floorNo;
+                if (!updateInfo.hasOwnProperty('basementNo')) updateInfo.basementNo = oldInfo.basementNo;
                 if (!updateInfo.hasOwnProperty('square')) updateInfo.square = oldInfo.square;
                 if (!updateInfo.hasOwnProperty('price')) updateInfo.price = oldInfo.price;
-                if (!updateInfo.hasOwnProperty('bathroom_No')) updateInfo.bathroom_No = oldInfo.bathroom_No;
-                if (!updateInfo.hasOwnProperty('bedroom_No')) updateInfo.bedroom_No = oldInfo.bedroom_No;
-                if (!updateInfo.hasOwnProperty('livingroom_No')) updateInfo.livingroom_No = oldInfo.livingroom_No;
-                if (!updateInfo.hasOwnProperty('kitchen')) updateInfo.kitchen = oldInfo.kitchen;
+                if (!updateInfo.hasOwnProperty('bathroomNo')) updateInfo.bathroomNo = oldInfo.bathroomNo;
+                if (!updateInfo.hasOwnProperty('bedroomNo')) updateInfo.bedroomNo = oldInfo.bedroomNo;
+                if (!updateInfo.hasOwnProperty('livingroomNo')) updateInfo.livingroomNo = oldInfo.livingroomNo;
+                if (!updateInfo.hasOwnProperty('kitchenNo')) updateInfo.kitchenNo = oldInfo.kitchenNo;
                 if (!updateInfo.hasOwnProperty('contact')) updateInfo.contact = oldInfo.contact;
-                if (!updateInfo.hasOwnProperty('onSale')) updateInfo.sold = oldInfo.onSale;
+                if (!updateInfo.hasOwnProperty('onSale')) updateInfo.onSale = oldInfo.onSale;
                 House.update({ '_id': req.body._id }, {
                     "location": updateInfo.location,
                     "img_Link": updateInfo.img_Link,
-                    "floor_No": updateInfo.floor_No,
-                    "basement_No": updateInfo.basement_No,
+                    "floorNo": updateInfo.floorNo,
+                    "basementNo": updateInfo.basementNo,
                     "square": updateInfo.square,
                     "price": updateInfo.price,
-                    "bathroom_No": updateInfo.bathroom_No,
-                    "bedroom_No": updateInfo.bedroom_No,
-                    "livingroom_No": updateInfo.livingroom_No,
+                    "bathroomNo": updateInfo.bathroomNo,
+                    "bedroomNo": updateInfo.bedroomNo,
+                    "livingroomNo": updateInfo.livingroomNo,
                     "kitchen": updateInfo.kitchen,
                     "contact": updateInfo.contact,
                     "onSale": updateInfo.onSale
