@@ -8,61 +8,102 @@ module.exports = {
     searchHouse: searchHouse,
     findHouseById: findHouseById,
     updateHouseInfo: updateHouseInfo,
-    deleteHouseByCuid: deleteHouseByCuid
+    deleteHouseByCuid: deleteHouseByCuid,
+    setAvailableFlag: setAvailableFlag
 }
 
-function createHouse(house, callback) {
-    var houseNew = new House(house);
-    // house.location = sanitizeHtml(house.location);
-    houseNew.cuid = cuid();
-    // house.img_Link = sanitizeHtml(house.img_Link);
-    houseNew.floor_No = sanitizeHtml(houseNew.floor_No);
-    houseNew.basement_No = sanitizeHtml(houseNew.basement_No);
-    houseNew.square = sanitizeHtml(houseNew.square);
-    houseNew.price = sanitizeHtml(houseNew.price);
-    houseNew.bathroom_No = sanitizeHtml(houseNew.bathroom_No);
-    houseNew.bedroom_No = sanitizeHtml(houseNew.bedroom_No);
-    houseNew.livingroom_No = sanitizeHtml(houseNew.livingroom_No);
-    houseNew.kitchen = sanitizeHtml(houseNew.kitchen);
-    houseNew.contact.name = sanitizeHtml(houseNew.contact.name);
-    houseNew.contact.phone = sanitizeHtml(houseNew.contact.phone);
-    houseNew.contact.company = sanitizeHtml(houseNew.contact.company);
-    houseNew.contact.email = sanitizeHtml(houseNew.contact.email);
-    houseNew.onSale = true;
-    House.findOne().sort({ 'stt': -1 }).exec(function (err, item) {
-        if (err || item === null) {
-            houseNew.stt = 1;
-            houseNew.save(function (err, saved) {
-                if (err) {
-                    callback(err);
-                } else callback(null, { data: saved });
-            });
-        } else {
-            houseNew.stt = item.toObject().stt + 1;
-            houseNew.save(function (err, saved) {
-                if (err) {
-                    callback(err);
-                } else callback(null, { data: saved });
+function createHouse(user, house, callback) {
+    userDao.getUserByEmail(user.email, function (err, userFromDatabase) {
+        if (err) callback(err);
+        else {
+            var houseNew = new House(house);
+            // house.location = sanitizeHtml(house.location);
+            // house.img_Link = sanitizeHtml(house.img_Link);
+            houseNew.floorNo = (houseNew.floorNo);
+            houseNew.basementNo = (houseNew.basementNo);
+            houseNew.square = (houseNew.square);
+            houseNew.price = (houseNew.price);
+            houseNew.bathroomNo = (houseNew.bathroomNo);
+            houseNew.bedroomNo = (houseNew.bedroomNo);
+            houseNew.livingroomNo = (houseNew.livingroomNo);
+            houseNew.kitchenNo = (houseNew.kitchenNo);
+            houseNew.contact.name = (houseNew.contact.name);
+            houseNew.contact.phone = (houseNew.contact.phone);
+            houseNew.contact.email = (houseNew.contact.email);
+            houseNew.poster_id = userFromDatabase._id;
+            houseNew.onSale = true;
+            houseNew.available = true;
+            House.findOne().sort({ 'stt': -1 }).exec(function (err, item) {
+                if (err) callback(err);
+                else if (item === null) {
+                    houseNew.stt = 1;
+                    houseNew.save(function (err, saved) {
+                        if (err) {
+                            console.log(1);
+                            console.log(err);
+                            callback(err);
+                        } else callback(null, { data: saved });
+                    });
+                } else {
+                    houseNew.stt = item.toObject().stt + 1;
+                    houseNew.save(function (err, saved) {
+                        if (err) {
+                            console.log(2);
+                            callback(err);
+                        } else {
+                            console.log(3);
+                            console.log(saved);
+                            callback(null, { data: saved });
+                        }
+                    });
+                }
             });
         }
     });
 }
 
 function searchHouse(url, callback) {
-    var city = new String(url.city);
-    city = city.replace(/-/g, " ");
-    city = url.city ? new RegExp("^" + url.city, "i") : new RegExp();
-    var district = new String(url.district);
-    district = district.replace(/-/g, " ");
-    district = url.district ? new RegExp("^" + url.district, "i") : new RegExp();
-    var fNo = url.fno ? url.fno : 0;
-    var bno = url.bno ? url.bno : 0;
-    var bthno = url.bthno ? url.bthno : 0;
-    var bedno = url.bedno ? url.bedno : 0;
-    var lno = url.lno ? url.lno : 0;
-    var kno = url.kno ? url.kno : 0;
-    var price = url.price ? url.price : 0;
-    var square = url.square ? url.square : 0;
+    var query = {};
+
+    if (url.city) {
+        query['location.city'] = unescape(url.city.replace(/-/g, " "));
+    }
+    if (url.district) {
+        query['location.district'] = unescape(url.district.replace(/-/g, " "));
+    }
+    if (url.noFloor) {
+        query['floorNo'] = { $gte: url.noFloor };
+    }
+    if (url.noBedroom) {
+        query['bedroomNo'] = { $gte: url.noBedroom };
+    }
+    if (url.noLivingrom) {
+        query['livingroomNo'] = { $gte: url.noLivingrom };
+    }
+    if (url.noBathroom) {
+        query['bathroomNo'] = { $gte: url.noBathroom };
+    }
+    if (url.noKitchen) {
+        query['kitchenNo'] = { $gte: url.noKitchen };
+    }
+    if (url.noBasement) {
+        query['basementNo'] = { $gte: url.noBasement };
+    }
+    if (url.square) {
+        query['square'] = { $lte: url.square };
+    }
+    if (url.price) {
+        query['price'] = { $lte: url.price };
+    }
+    if (url.poster_id) {
+        query['poster_id'] = url.poster_id;
+    } else if (!url.all) {
+        query['onSale'] = true;
+        query['available'] = true;
+    } else if (url.all !== "true") {
+        query['onSale'] = true;
+        query['available'] = true;
+    }
     // dung de phan trang
     var pageSize = url.pagesize ? parseInt(url.pagesize) : pageConfig.maxPageSize;
     var pageIndex = url.pageindex ? parseInt(url.pageindex) : 1;
@@ -80,38 +121,14 @@ function searchHouse(url, callback) {
         }
         callback(err);
     } else {
-        House.count({
-            'location.city': city,
-            'location.district': district,
-            'floorNo': { $gte: fNo },
-            'basementNo': { $gte: bno },
-            'bathroomNo': { $gte: bthno },
-            'bedroomNo': { $gte: bedno },
-            'livingroomNo': { $gte: lno },
-            'kitchenNo': { $gte: kno },
-            'price': { $gte: price },
-            'square': { $gte: square },
-            'onSale': true
-        }, function (err, count) {
+        House.count(query, function (err, count) {
             if (err) callback(err);
             else {
                 if (pageSize < 0) {
                     pageSize = count;
                     pageIndex = 1;
                 }
-                House.find({
-                    'location.city': city,
-                    'location.district': district,
-                    'floorNo': { $gte: fNo },
-                    'basementNo': { $gte: bno },
-                    'bathroomNo': { $gte: bthno },
-                    'bedroomNo': { $gte: bedno },
-                    'livingroomNo': { $gte: lno },
-                    'kitchenNo': { $gte: kno },
-                    'price': { $gte: price },
-                    'square': { $gte: square },
-                    'onSale': true
-                }).skip((pageIndex > 0) ? (pageIndex - 1) * pageSize : 0)
+                House.find(query).skip((pageIndex > 0) ? (pageIndex - 1) * pageSize : 0)
                     .limit(pageSize)
                     .exec(function (err, response) {
                         if (err) { callback(err); }
@@ -127,10 +144,16 @@ function searchHouse(url, callback) {
     }
 }
 
-function findHouseById() {
-    House.find({ _id: id }, function (err, response) {
+function findHouseById(id, callback) {
+    House.findOne({ _id: id }, function (err, response) {
         if (err) callback(err);
-        else callback(null, {
+        else if (!response) {
+            var err = {
+                statusCode: 400,
+                "message": "House does not exist"
+            };
+            callback(err)
+        } else callback(null, {
             data: response
         });
     });
@@ -209,5 +232,16 @@ function deleteHouseByCuid(user, cuid, callback) {
                 }
             });
         }
+    });
+}
+
+function setAvailableFlag(url, callback) {
+    var id = url.id;
+    var flag = url.flag == 1 ? true : false;
+    House.update({ '_id': id }, { available: flag }, function (err, response) {
+        if (err) callback(err);
+        else callback(null, {
+            data: response
+        });
     });
 }

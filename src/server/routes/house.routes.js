@@ -4,11 +4,12 @@ var auth = require('./../middlewares/jwt-parser');
 
 module.exports = function () {
 
-    router.get('/*', searchHouse);
+    router.get('/search/*', searchHouse);
     router.post('/', auth.parser('user'), createHouse);
-    router.get('/:id', findHouseById);
+    router.get('/getHouse/:id', findHouseById);
     router.put('/', auth.parser('user'), updateHouseInfo);
-    router.delete('/:cuid', auth.parser('user', 'admin'), deleteHouse);
+    router.delete('/:id', auth.parser('user', 'admin'), deleteHouse);
+    router.put('/setAvailableFlag', auth.parser('admin'), setAvailableFlag);
 
     function searchHouse(req, res, next) {
         houseDao.searchHouse(req.query, function(err, response){
@@ -25,15 +26,15 @@ module.exports = function () {
             }
             next(err);
         } else {
-            houseDao.createHouse(req.body.house, function (err, response) {
+            houseDao.createHouse(req.body.user, req.body.house, function (err, response) {
                 if (err) next(err);
-                else res.send(null, response);
+                else res.send(response);
             });
         }
     }
 
     function findHouseById(req, res, next) {
-        houseDao.getFeedbackById(req.params.id, function (err, response) {
+        houseDao.findHouseById(req.params.id, function (err, response) {
             if (err) next(err);
             else res.send(response);
         });
@@ -62,4 +63,11 @@ module.exports = function () {
     }
 
     return router;
+}
+
+function setAvailableFlag(req, res, next){
+    houseDao.setAvailableFlag(req.query, function(err, response){
+        if (err) next(err);
+        else res.send(response);
+    });
 }

@@ -5,10 +5,6 @@ var houseSchema = new Schema({
     "stt": {
         type: Number
     },
-    "cuid": {
-        type: String,
-        required: true
-    },
     "location": {
         "city": {
             type: String
@@ -62,6 +58,11 @@ var houseSchema = new Schema({
     },
     "onSale": {
         type: Boolean,
+        default: true
+    },
+    "available": {
+        type: Boolean,
+        required: true,
         default: true
     }
 });
