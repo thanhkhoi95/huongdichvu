@@ -1,4 +1,4 @@
 module.exports = {
     BASE_URL    : "",
-    PORT        : 5000
+    PORT        : process.env.PORT || 5000
 };
