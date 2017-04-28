@@ -13,7 +13,9 @@ module.exports = {
     updateUser: updateUser,
     validateAdmin: validateAdmin,
     deleteUserById: deleteUserById,
-    setRoleById: setRoleById
+    setRoleById: setRoleById,
+    banUser: banUser,
+    unbanUser: unbanUser
 };
 
 function convertUserModelToUserResponse(userModel) {
@@ -195,9 +197,9 @@ function deleteUserById(id, callback) {
 }
 
 function setRoleById(id, role, callback) {
-    User.findOne({ _id: id }, function (err, response) {
+    User.findOne({ _id: id }, function (err, userFromDatabase) {
         if (err) { callback(err); }
-        else if (!response) {
+        else if (!userFromDatabase) {
             var err = {
                 statusCode: 400,
                 "message": "User does not exist"
@@ -206,12 +208,88 @@ function setRoleById(id, role, callback) {
         } else {
             User.update({ _id: id }, {
                 role: role
-            }, function (err, reponse) {
+            }, function (err) {
                 if (err) { callback(err); }
                 else {
-                    callback(null, {
-                        data: response
-                    });
+                    userFromDatabase.role = "banned";
+                    callback(null, {data: userFromDatabase});
+                }
+            });
+        }
+    });
+}
+
+function banUser(id, callback) {
+    var houseDao = require('./../dao/house.dao');
+    setRoleById(id, "banned", function (err, resData) {
+        if (err) callback(err);
+        else {
+            var url = {};
+            url.poster_id = id;
+            url.pageSize = -1;
+            var userFromDatabase = resData.data;
+            houseDao.searchHouse(url, function (err, response) {
+                if (err) callback(err);
+                else {
+                    housePosts = response.data.items;
+                    var error = {
+                        statusCode: 200
+                    }
+                    for (var i = 0; i < response.data.totalResult; i++) {
+                        url = {};
+                        url.id = housePosts[i]._id;
+                        url.flag = 0;
+                        houseDao.setAvailableFlag(url, function (err){
+                            if (err) {
+                                error.statusCode = 500;
+                                error['err'+i] = err;
+                            }
+                        });
+                    }
+                    if (error.statusCode !== 200){
+                        error.finalMessage = "User has been banned successfully but set available flag for houses failed"
+                        callback(error);
+                    }else{
+                        callback(null, {data: userFromDatabase});
+                    }
+                }
+            });
+        }
+    });
+}
+
+function unbanUser(id, callback) {
+    var houseDao = new require('./../dao/house.dao');
+    setRoleById(id, "user", function (err, userFromDatabase) {
+        if (err) callback(err);
+        else {
+            var url = {};
+            url.poster_id = id;
+            url.pageSize = -1;
+            houseDao.searchHouse(url, function (err, response) {
+                if (err) callback(err);
+                else {
+                    housePosts = response.data.items;
+                    var error = {
+                        statusCode: 200
+                    }
+                    for (var i = 0; i < response.data.totalResult; i++) {
+                        url = {};
+                        url.id = housePosts[i]._id;
+                        url.flag = 1;
+                        houseDao.setAvailableFlag(url, function (err){
+                            if (err) {
+                                error.statusCode = 500;
+                                error['err'+i] = err;
+                            }
+                        });
+                    }
+                    if (error.statusCode !== 200){
+                        error.finalMessage = "User has been unbanned successfully but set available flag for houses failed"
+                        callback(error);
+                    }else{
+                        callback(null, {data: userFromDatabase});
+                    }
                 }
             });
         }

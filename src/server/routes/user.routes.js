@@ -107,14 +107,14 @@ module.exports = function () {
     }
 
     function banUser(req, res, next) {
-        userDao.setRoleById(req.params.id, 'banned', function (err, response) {
+        userDao.banUser(req.params.id, function (err, response) {
             if (err) { next(err); }
             else { res.send(response); }
         });
     }
 
     function unbanUser(req, res, next){
-        userDao.setRoleById(req.params.id, 'user', function (err, response) {
+        userDao.unbanUser(req.params.id, function (err, response) {
             if (err) { next(err); }
             else { res.send(response); }
         });

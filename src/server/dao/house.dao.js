@@ -8,7 +8,7 @@ module.exports = {
     searchHouse: searchHouse,
     findHouseById: findHouseById,
     updateHouseInfo: updateHouseInfo,
-    deleteHouseByCuid: deleteHouseByCuid,
+    deleteHouseById: deleteHouseById,
     setAvailableFlag: setAvailableFlag
 }
 
@@ -39,8 +39,6 @@ function createHouse(user, house, callback) {
                     houseNew.stt = 1;
                     houseNew.save(function (err, saved) {
                         if (err) {
-                            console.log(1);
-                            console.log(err);
                             callback(err);
                         } else callback(null, { data: saved });
                     });
@@ -48,11 +46,8 @@ function createHouse(user, house, callback) {
                     houseNew.stt = item.toObject().stt + 1;
                     houseNew.save(function (err, saved) {
                         if (err) {
-                            console.log(2);
                             callback(err);
                         } else {
-                            console.log(3);
-                            console.log(saved);
                             callback(null, { data: saved });
                         }
                     });
@@ -124,7 +119,6 @@ function searchHouse(url, callback) {
         House.count(query, function (err, count) {
             if (err) callback(err);
             else {
-                console.log("count " + count);
                 if (pageSize < 0) {
                     pageSize = count;
                     pageIndex = 1;
@@ -167,61 +161,61 @@ function updateHouseInfo(user, house, callback) {
             var updateInfo = house;
             var oldInfo = {};
             House.findOne({
-                _id: req.body._id,
+                _id: house._id,
                 poster_id: userFromDatabase._id
-            }, function (err, old) {
+            }, function (err, oldInfo) {
                 if (err) callback(err);
-                else if (!old) {
+                else if (!oldInfo) {
                     var err = {
                         statusCode: 400,
                         "message": "House does not exist"
                     }
+                    callback(err);
+                } else {
+                    if (!updateInfo.hasOwnProperty('location')) updateInfo.location = oldInfo.location;
+                    if (!updateInfo.hasOwnProperty('img_Link')) updateInfo.img_Link = oldInfo.img_Link;
+                    if (!updateInfo.hasOwnProperty('floorNo')) updateInfo.floorNo = oldInfo.floorNo;
+                    if (!updateInfo.hasOwnProperty('basementNo')) updateInfo.basementNo = oldInfo.basementNo;
+                    if (!updateInfo.hasOwnProperty('square')) updateInfo.square = oldInfo.square;
+                    if (!updateInfo.hasOwnProperty('price')) updateInfo.price = oldInfo.price;
+                    if (!updateInfo.hasOwnProperty('bathroomNo')) updateInfo.bathroomNo = oldInfo.bathroomNo;
+                    if (!updateInfo.hasOwnProperty('bedroomNo')) updateInfo.bedroomNo = oldInfo.bedroomNo;
+                    if (!updateInfo.hasOwnProperty('livingroomNo')) updateInfo.livingroomNo = oldInfo.livingroomNo;
+                    if (!updateInfo.hasOwnProperty('kitchenNo')) updateInfo.kitchenNo = oldInfo.kitchenNo;
+                    if (!updateInfo.hasOwnProperty('contact')) updateInfo.contact = oldInfo.contact;
+                    if (!updateInfo.hasOwnProperty('onSale')) updateInfo.onSale = oldInfo.onSale;
+                    House.update({ '_id': house._id }, {
+                        "location": updateInfo.location,
+                        "img_Link": updateInfo.img_Link,
+                        "floorNo": updateInfo.floorNo,
+                        "basementNo": updateInfo.basementNo,
+                        "square": updateInfo.square,
+                        "price": updateInfo.price,
+                        "bathroomNo": updateInfo.bathroomNo,
+                        "bedroomNo": updateInfo.bedroomNo,
+                        "livingroomNo": updateInfo.livingroomNo,
+                        "kitchen": updateInfo.kitchen,
+                        "contact": updateInfo.contact,
+                        "onSale": updateInfo.onSale
+                    }, function (err, response) {
+                        if (err)
+                            callback(err);
+                        else {
+                            callback(null, { data: response });
+                        }
+                    });
                 }
-                else oldInfo = old;
-            }).then(function () {
-                if (!updateInfo.hasOwnProperty('location')) updateInfo.location = oldInfo.location;
-                if (!updateInfo.hasOwnProperty('img_Link')) updateInfo.img_Link = oldInfo.img_Link;
-                if (!updateInfo.hasOwnProperty('floorNo')) updateInfo.floorNo = oldInfo.floorNo;
-                if (!updateInfo.hasOwnProperty('basementNo')) updateInfo.basementNo = oldInfo.basementNo;
-                if (!updateInfo.hasOwnProperty('square')) updateInfo.square = oldInfo.square;
-                if (!updateInfo.hasOwnProperty('price')) updateInfo.price = oldInfo.price;
-                if (!updateInfo.hasOwnProperty('bathroomNo')) updateInfo.bathroomNo = oldInfo.bathroomNo;
-                if (!updateInfo.hasOwnProperty('bedroomNo')) updateInfo.bedroomNo = oldInfo.bedroomNo;
-                if (!updateInfo.hasOwnProperty('livingroomNo')) updateInfo.livingroomNo = oldInfo.livingroomNo;
-                if (!updateInfo.hasOwnProperty('kitchenNo')) updateInfo.kitchenNo = oldInfo.kitchenNo;
-                if (!updateInfo.hasOwnProperty('contact')) updateInfo.contact = oldInfo.contact;
-                if (!updateInfo.hasOwnProperty('onSale')) updateInfo.onSale = oldInfo.onSale;
-                House.update({ '_id': req.body._id }, {
-                    "location": updateInfo.location,
-                    "img_Link": updateInfo.img_Link,
-                    "floorNo": updateInfo.floorNo,
-                    "basementNo": updateInfo.basementNo,
-                    "square": updateInfo.square,
-                    "price": updateInfo.price,
-                    "bathroomNo": updateInfo.bathroomNo,
-                    "bedroomNo": updateInfo.bedroomNo,
-                    "livingroomNo": updateInfo.livingroomNo,
-                    "kitchen": updateInfo.kitchen,
-                    "contact": updateInfo.contact,
-                    "onSale": updateInfo.onSale
-                }, function (err, response) {
-                    if (err)
-                        callback(err);
-                    else {
-                        callback(null, { data: response });
-                    }
-                });
             });
         }
     });
 }
 
-function deleteHouseByCuid(user, cuid, callback) {
+function deleteHouseById(user, id, callback) {
     userDao.getUserByEmail(user.email, function (err, userFromDatabase) {
         if (err) callback(err);
         else {
             House.remove({
-                cuid: req.body.cuid,
+                cuid: id,
                 poster_id: userFromDatabase._id
             }, function (err, response) {
                 if (err)

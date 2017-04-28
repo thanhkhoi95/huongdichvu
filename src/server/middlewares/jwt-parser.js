@@ -19,11 +19,19 @@ exports.parser = function () {
                                 res.status(err.statusCode || 500).json({
                                     message: err.message
                                 });
+                            }else if (response.role !== "user"){
+                                res.status(401).json({
+                                    message: 'Invalid user or token'
+                                });
                             } else if (!response) {
                                 res.status(401).json({
                                     message: 'Invalid user or token'
                                 });
-                            } else if (req.body.user.email !== response.email) {
+                            }else if (!req.body.user){
+                                res.status(401).json({
+                                    message: 'Invalid user or token'
+                                });
+                            } else if (req.body.user.email !== response.email) { 
                                 res.status(550).json({
                                     message: 'Permission denied'
                                 });

@@ -48,15 +48,15 @@ module.exports = function () {
             };
             next(err);
         } else {
-            houseDao.updateHouse(req.body.user, req.body.house, function (err, response) {
+            houseDao.updateHouseInfo(req.body.user, req.body.house, function (err, response) {
                 if (err) next(err);
-                else res.send(null, response);
+                else res.send(response);
             })
         }
     }
 
     function deleteHouse(req, res, next) {
-        houseDao.deleteHouseByCuid(req.body.user, req.params.cuid, function (err, response) {
+        houseDao.deleteHouseById(req.body.user, req.params.cuid, function (err, response) {
             if (err) next(err);
             else res.send(response);
         });
