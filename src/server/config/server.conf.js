@@ -1,4 +1,4 @@
 module.exports = {
     BASE_URL    : "",
-    PORT        : 6969
+    PORT        : 5000
 };
