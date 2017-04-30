@@ -4,7 +4,7 @@ var auth = require('./../middlewares/jwt-parser');
 
 module.exports = function () {
 
-    router.get('/search/*', searchHouse);
+    router.get('/search', searchHouse);
     router.post('/', auth.parser('user'), createHouse);
     router.get('/getHouse/:id', findHouseById);
     router.put('/', auth.parser('user'), updateHouseInfo);
